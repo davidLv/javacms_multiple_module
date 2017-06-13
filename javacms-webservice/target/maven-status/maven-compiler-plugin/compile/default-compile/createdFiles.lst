@@ -1,0 +1,4 @@
+org\javacms\ws\HelloWorldService.class
+org\javacms\ws\UserSoapService.class
+org\javacms\ws\impl\HelloWorldServiceImpl.class
+org\javacms\ws\impl\UserSoapServiceImpl.class

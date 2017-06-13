@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.javacms.dao.UserDao">
+    <resultMap type="org.javacms.beans.User" id="userRoleMap">
+        <id property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="email" column="email"/>
+        <result property="password" column="password"/>
+        <result property="registerTime" column="register_time"/>
+        <result property="registerIp" column="register_ip"/>
+        <result property="lastLoginIp" column="last_login_ip"/>
+        <result property="lastLoginTime" column="last_login_time"/>
+        <result property="activation" column="activation"/>
+        <collection property="role" ofType="org.javacms.beans.Role">
+            <id property="id" column="role_id" />
+            <result property="siteId" column="site_id" />
+            <result property="roleName" column="role_name" />
+            <result property="priority" column="priority" />
+            <result property="isSuper" column="is_super" />
+            <result property="roleType" column="role_type"/>
+            <collection property="permission" ofType="org.javacms.beans.RolePermission">
+                <result property="uri" column="uri"/>
+            </collection>
+        </collection>
+    </resultMap>
+    <resultMap type="org.javacms.beans.User" id="UserResultMap">
+        <id column="user_id" property="userId"/>
+        <result column="username" property="username"/>
+        <result column="email" property="email"/>
+        <result column="register_time" property="registerTime"/>
+        <result column="register_ip" property="registerIp"/>
+        <result column="last_login_time" property="lastLoginTime"/>
+        <result column="last_login_ip" property="lastLoginIp"/>
+        <result column="login_count" property="loginCount"/>
+        <result column="error_time" property="errorTime"/>
+        <result column="error_count" property="errorCount"/>
+        <result column="error_ip" property="errorIp"/>
+        <result column="activation" property="errorCount"/>
+        <result column="activation_code" property="activationCode"/>
+    </resultMap>
+    <select id="getUserByUsername" parameterType="String" resultMap="userRoleMap">
+        SELECT
+            jou.user_id,
+            jou.username,
+            jou.email,
+            jou.password,
+            jou.register_time,
+            jou.register_ip,
+            jou.last_login_ip,
+            jou.last_login_time,
+            jou.activation,
+            jr.role_id,
+            jr.site_id,
+            jr.role_name,
+            jr.priority,
+            jr.is_super,
+            jr.role_type,
+            jrp.uri
+        FROM
+            jo_user jou
+        LEFT JOIN
+            jc_user_role jur ON jur.user_id = jou.user_id
+        LEFT JOIN
+            jc_role jr ON jr.role_id = jur.role_id
+        LEFT JOIN
+            jc_role_permission jrp ON jr.role_id = jrp.role_id
+        WHERE
+                jou.username = #{username}
+            AND jou.activation = 1
+    </select>
+    <!-- <select id="selectUserRole" parameterType="int" resultMap="userRoleMap">
+        SELECT
+            jr.*
+        FROM
+            jo_user jou
+        LEFT JOIN
+            jc_user_role jur ON jur.user_id = jou.user_id
+        LEFT JOIN
+            jo_role jr ON jr.role_id = jur.role_id
+        WHERE
+                jou.user_id = #{id}
+            AND jou.activation = 1
+    </select> -->
+    
+</mapper>

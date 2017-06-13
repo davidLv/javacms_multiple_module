@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xmlns:context="http://www.springframework.org/schema/context"
+   xmlns:mvc="http://www.springframework.org/schema/mvc"
+   xmlns:p="http://www.springframework.org/schema/p"
+   xmlns:aop="http://www.springframework.org/schema/aop"
+   xmlns:tx="http://www.springframework.org/schema/tx"
+   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+    http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+    <!-- validator跟conversion-service在验证时候必需提供 -->
+    <mvc:annotation-driven validator="validator" conversion-service="conversion-service">
+        <mvc:message-converters>
+            <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+                <property name="defaultCharset" value="UTF-8" />
+                <!-- <property name="supportedMediaTypes">
+                    <list>
+                        <value>application/json;charset=UTF-8</value>
+                        <value>text/html;charset=UTF-8</value>
+                    </list>
+                </property> -->
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+    <context:annotation-config />
+    <context:component-scan base-package="org.javacms" />
+    
+    <bean name="handlerAdapter" class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter" >
+	</bean>
+	<bean name="handlerMapping" class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
+	</bean>
+	<!-- 针对freemarker的视图配置 -->
+    <bean id="viewResolver"
+        class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
+        <property name="cache" value="false" />
+        <property name="prefix" value="" />
+        <property name="suffix" value=".html" />
+        <property name="contentType" value="text/html;charset=UTF-8"></property>
+        <property name="requestContextAttribute" value="request" />
+        <property name="exposeSpringMacroHelpers" value="true" />
+        <property name="exposeRequestAttributes" value="true" />
+        <property name="exposeSessionAttributes" value="true" />
+    </bean>
+    <!-- validator config start -->
+    
+    <bean id="conversion-service" class="org.springframework.format.support.FormattingConversionServiceFactoryBean" />
+    <!-- validator config end -->
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+    	<property name="basenames">
+    		<list>
+    			<value>language.messages</value>
+    			<value>validator.validatormessages</value>
+    		</list>
+    	</property>
+        <!-- <property name="basename" value="languages.messages"/> -->
+        <property name="useCodeAsDefaultMessage" value="false"/>
+    </bean>
+    
+    <bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+        <property name="providerClass" value="org.hibernate.validator.HibernateValidator" />
+        <property name="validationMessageSource" ref="messageSource" />
+    </bean>
+    <bean class="org.springframework.validation.beanvalidation.MethodValidationPostProcessor">  
+        <property name="validator" ref="validator"/>  
+    </bean>
+    <mvc:resources location="/res/**" mapping="/javacms/res/"></mvc:resources>
+    <mvc:resources location="/thirdparty/**" mapping="/javacms/thirdparty/"></mvc:resources>
+    <!-- 对于静态资源用default servlet -->
+    <mvc:default-servlet-handler />
+    
+	<bean id="localeChangeInterceptor" class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor" />
+    <!-- <bean id="cookieLocaleResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver"/> -->
+    <mvc:interceptors>
+        <!-- <mvc:interceptor>
+            <mvc:mapping path="/admin/**"/>
+            <mvc:exclude-mapping path="/res/**"/>
+            <mvc:exclude-mapping path="/admin/login"/>
+            <bean class="org.javacms.interceptors.CheckLoginInterceptor"></bean>
+        </mvc:interceptor> -->
+        <mvc:interceptor>
+            <mvc:mapping path="/admin/**"/>
+            <bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor" ></bean>
+        </mvc:interceptor>
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <ref bean="localeChangeInterceptor"/>
+        </mvc:interceptor>
+    </mvc:interceptors>
+</beans>

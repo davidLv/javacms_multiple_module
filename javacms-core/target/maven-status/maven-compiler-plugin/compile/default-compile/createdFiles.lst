@@ -1,0 +1,13 @@
+org\javacms\core\security\config\WebSecurityConfig.class
+org\javacms\core\security\filter\CustomUsernamePasswordAuthenticationFilter.class
+org\javacms\core\security\handler\CustomLogoutSuccessHandler.class
+org\javacms\core\security\SecurityWebApplicationInitializer.class
+org\javacms\core\security\oauth2\config\MethodSecurityConfig.class
+org\javacms\core\security\handler\CustomLoginSuccessHandler.class
+org\javacms\core\security\oauth2\config\ResourceServerConfiguration.class
+org\javacms\core\security\handler\CustomLoginFailHandler.class
+org\javacms\core\security\handler\CustomAccessDenyHandler.class
+org\javacms\core\security\userdetails\CustomUserDetailsService.class
+org\javacms\core\security\userdetails\CustomUserDetails.class
+org\javacms\core\security\oauth2\config\AuthorizationServerConfiguration.class
+org\javacms\core\security\config\WebSecurityConfig$SoapWebSecurityConfig.class

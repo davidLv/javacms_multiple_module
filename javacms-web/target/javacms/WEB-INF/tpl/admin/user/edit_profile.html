@@ -1,0 +1,60 @@
+<#assign contextPath=request.contextPath />
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional
+.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title></title>
+<#include "/admin/common/header.html"/>
+<script type="text/javascript">
+	$(function() {
+		$("#jvForm").validate({
+			submitHandler: function(form)
+			{
+			    //$(form).ajaxSubmit();
+				$.post('${contextPath}/admin/user/update_profile',
+					$('#jvForm').serialize(),
+		            function(data) {
+		                alert(data.code);
+		            }
+				);
+			}
+		});
+	});
+</script>
+</head>
+<body>
+	<div class="page-positon ove">
+		<div class="position-div">当前位置: 个人资料修改 > 修改个人资料</div>
+	</div>
+	<div class="body-box">
+		<form method="post" action="javascript:void(0);" id="jvForm" class="formDefStyle">
+			<table width="100%" class="pn-ftable" cellpadding="2" cellspacing="1"
+				border="0">
+				<tr>
+					<td width="20%" class="pn-flabel pn-flabel-h">用户名:</td>
+					<td width="80%" class="pn-fcontent">${Session.userName}</td>
+				</tr>
+				<tr>
+					<td width="20%" class="pn-flabel pn-flabel-h">真实姓名:</td>
+					<td width="80%" class="pn-fcontent"><input type="text"
+						maxlength="100" value="JEECMS" name="realname" maxlength="100" /></td>
+				</tr>
+				<tr>
+					<td width="20%" class="pn-flabel pn-flabel-h">电子邮箱:</td>
+					<td width="80
+%" class="pn-fcontent"><input type="text"
+						maxlength="100" value="aa@qq.com" name="email" class="email"
+						maxlength="100" /></td>
+				</tr>
+				<tr>
+					<td colspan="2" class="pn-fbutton">
+						<button class="btn btn-info" type="submit" id="submit">提交</button>
+						<button class="btn btn-info" type="reset">重置</button>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</body>
+</html>

@@ -1,0 +1,6 @@
+org\javacms\service\impl\MessageServiceImpl.class
+org\javacms\service\impl\UserServiceImpl.class
+org\javacms\service\LoginService.class
+org\javacms\service\UserService.class
+org\javacms\service\impl\LoginServiceImpl.class
+org\javacms\service\MessageService.class

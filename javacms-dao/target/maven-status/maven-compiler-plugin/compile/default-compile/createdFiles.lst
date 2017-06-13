@@ -1,0 +1,9 @@
+org\javacms\dao\MessageDao.class
+org\javacms\beans\Message.class
+org\javacms\beans\RolePermission.class
+org\javacms\sql\provider\UserSqlProvider$1.class
+org\javacms\beans\UserProfile.class
+org\javacms\dao\UserDao.class
+org\javacms\beans\Role.class
+org\javacms\beans\User.class
+org\javacms\sql\provider\UserSqlProvider.class

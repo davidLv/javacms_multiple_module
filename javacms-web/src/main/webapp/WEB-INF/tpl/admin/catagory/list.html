@@ -1,0 +1,249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional
+.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title></title>
+<link href="/jeecms/res/jeecms/css/admin.css" rel="stylesheet"
+	type="text/css" />
+<link href="/jeecms/res/common/css/theme.css" rel="stylesheet"
+	type="text/css" />
+<link href="/jeecms/res/common/css/jquery.validate.css" rel="stylesheet"
+	type="text/css" />
+<link href="/jeecms/res/common/css/jquery.treeview.css" rel="stylesheet"
+	type="text/css" />
+<link href="/jeecms/res/common/css/jquery.ui.css" rel="stylesheet"
+	type="text/css" />
+
+<script src="/jeecms/thirdparty/My97DatePicker/WdatePicker.js"
+	type="text/javascript"></script>
+<script src="/jeecms/res/common/js/jquery.js" type="text/javascript"></script>
+<script src="/jeecms/res/common/js/jquery.ext.js" type="text/javascript"></script>
+<script src="/jeecms/res/common/js/jquery-ui.js" type="text/javascript"></script>
+<script src="/jeecms/res/common/js/jeecms.js" type="text/javascript"></script>
+<script src="/jeecms/res/jeecms/js/admin.js" type="text/javascript"></script>
+
+<script src="/jeecms/thirdparty/ueditor/ueditor.config.js"
+	type="text/javascript"></script>
+<script src="/jeecms/thirdparty/ueditor/ueditor.all.js"
+	type="text/javascript"></script>
+<script src="/jeecms/thirdparty/ueditor/lang/zh-cn/zh-cn.js"
+	type="text/javascript"></script>
+<script type="text/javascript">
+	function getTableForm() {
+		return document.getElementById('tableForm');
+	}
+	function optDelete() {
+		if (Pn.checkedCount('ids') <= 0) {
+			$.alert("提示", "请选择您要操作的数据");
+			return;
+		}
+		$.confirm(doDelete, "确认", "您确定删除吗？");
+	}
+	function doDelete() {
+		var f = getTableForm();
+		f.action = "o_delete.do";
+		f.submit();
+	}
+	function optPriority() {
+		var f = getTableForm();
+		f.action = "o_priority.do";
+		f.submit();
+	}
+</script>
+<script type="text/javascript">
+	var timeout = 500;
+	var closetimer = 0;
+	var ddmenuitem = 0;
+	function jsddm_open() {
+		jsddm_canceltimer();
+		jsddm_close();
+		ddmenuitem = $(this).find('ul').eq(0).css('visibility', 'visible');
+	}
+	function jsddm_close() {
+		if (ddmenuitem)
+			ddmenuitem.css('visibility', 'hidden');
+	}
+	function jsddm_timer() {
+		closetimer = window.setTimeout(jsddm_close, timeout);
+	}
+	function jsddm_canceltimer() {
+		if (closetimer) {
+			window.clearTimeout(closetimer);
+			closetimer = null;
+		}
+	}
+	document.onclick = jsddm_close;
+	$(function() {
+		$("#tableForm").validate();
+		$('#jsddm > li').bind('mouseover', jsddm_open);
+		$('#jsddm > li').bind('mouseout', jsddm_timer);
+	});
+</script>
+</head>
+<body>
+	<div class="page-positon ove">
+		<div class="position-div">当前位置: 栏目管理 > 列表</div>
+	</div>
+	<div class="box-positon">
+		<form class="ropt">
+			<input type="hidden" name="root" value="" />
+			<ul id="jsddm">
+				<li class="first"><a href="#">添加栏目</a>
+					<ul>
+						<li value="1"><a href="v_add.do?modelId=1&root="> 新闻</a></li>
+						<li value="1"><a href="v_add.do?modelId=2&root="> 单页</a></li>
+						<li value="1"><a href="v_add.do?modelId=4&root="> 下载</a></li>
+						<li value="1"><a href="v_add.do?modelId=5&root="> 图库</a></li>
+						<li value="1"><a href="v_add.do?modelId=6&root="> 视频</a></li>
+						<li value="1"><a href="v_add.do?modelId=8&root="> 招聘</a></li>
+					</ul></li>
+			</ul>
+
+		</form>
+
+		<div class="clear"></div>
+	</div>
+	<div class="body-box">
+		<form id="tableForm" method="post">
+			<input type="hidden" name="root" value="" /> <input type="hidden"
+				name="pageNo" value="" />
+			<table class="pn-ltable" style="" width="100%" cellspacing="0"
+				cellpadding="0" border="0">
+				<thead class="pn-lthead">
+					<tr>
+						<th width="25"><input type='checkbox'
+							onclick='Pn.checkbox("ids",this.checked)' /></th>
+						<th>ID</th>
+						<th>栏目名称</th>
+						<th>访问路径</th>
+						<th>排列顺序</th>
+						<th>显示</th>
+						<th>操作选项</th>
+					</tr>
+				</thead>
+				<tbody class="pn-ltbody">
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='75' onclick="Pn.selectCheckBox('75',this
+.checked)" /></td>
+						<td align="center">75<input type="hidden" name="wids"
+							value="75" /></td>
+						<td align="center">新闻</td>
+						<td align="center">news</td>
+						<td align="center"><input type="text" name="priority"
+							value="10" style="width: 40px;" /></td>
+						<td align="center">是</td>
+						<td align="center"><a href="v_edit.do?id=75" class="pn-opt">修改</a>
+							| <a href="o_delete.do?ids=75&root
+=" class="pn-opt"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}">删除</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='76' onclick="Pn.selectCheckBox('76',this
+.checked)" /></td>
+						<td align="center">76<input type="hidden" name="wids"
+							value="76" /></td>
+						<td align="center">图库</td>
+						<td align="center">pic</td>
+						<td align="center"><input type="text" name="priority"
+							value="10" style="width: 40px;" /></td>
+						<td align="center">是</td>
+						<td align="center"><a href="v_edit.do?id=76" class="pn-opt">修改</a>
+							| <a href="o_delete.do?ids=76&root
+=" class="pn-opt"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}">删除</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='77' onclick="Pn.selectCheckBox('77',this
+.checked)" /></td>
+						<td align="center">77<input type="hidden" name="wids"
+							value="77" /></td>
+						<td align="center">视频</td>
+						<td align="center">video</td>
+						<td align="center"><input type="text" name="priority"
+							value="10" style="width: 40px;" /></td>
+						<td align="center">是</td>
+						<td align="center"><a href="v_edit.do?id=77" class="pn-opt">修改</a>
+							| <a href="o_delete.do?ids=77&root
+=" class="pn-opt"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}">删除</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='78' onclick="Pn.selectCheckBox('78',this
+.checked)" /></td>
+						<td align="center">78<input type="hidden" name="wids"
+							value="78" /></td>
+						<td align="center">下载</td>
+						<td align="center">download</td>
+						<td align="center"><input type="text" name="priority"
+							value="10" style="width: 40px;" /></td>
+						<td align="center">是</td>
+						<td align="center"><a href="v_edit.do?id=78" class="pn-opt">修改</a>
+							| <a href="o_delete.do?ids=78&root
+=" class="pn-opt"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}">删除</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='79' onclick="Pn.selectCheckBox('79',this
+.checked)" /></td>
+						<td align="center">79<input type="hidden" name="wids"
+							value="79" /></td>
+						<td align="center">招聘</td>
+						<td align="center">job</td>
+						<td align="center"><input type="text" name="priority"
+							value="10" style="width: 40px;" /></td>
+						<td align="center">是</td>
+						<td align="center"><a href="v_edit.do?id=79" class="pn-opt">修改</a>
+							| <a href="o_delete.do?ids=79&root
+=" class="pn-opt"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}">删除</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='82' onclick="Pn.selectCheckBox('82',this
+.checked)" /></td>
+						<td align="center">82<input type="hidden" name="wids"
+							value="82" /></td>
+						<td align="center">留言板</td>
+						<td align="center">message</td>
+						<td align="center"><input type="text" name="priority"
+							value="10" style="width: 40px;" /></td>
+						<td align="center">是</td>
+						<td align="center"><a href="v_edit.do?id=82" class="pn-opt">修改</a>
+							| <a href="o_delete.do?ids=82&root
+=" class="pn-opt"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}">删除</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='80' onclick="Pn.selectCheckBox('80',this
+.checked)" /></td>
+						<td align="center">80<input type="hidden" name="wids"
+							value="80" /></td>
+						<td align="center">网络调查</td>
+						<td align="center">survey</td>
+						<td align="center"><input type="text" name="priority"
+							value="11" style="width: 40px;" /></td>
+						<td align="center">是</td>
+						<td align="center"><a href="v_edit.do?id=80" class="pn-opt">修改</a>
+							| <a href="o_delete.do?ids=80&root
+=" class="pn-opt"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}">删除</a></td>
+					</tr>
+				</tbody>
+			</table>
+			<div style="margin-top: 20px;">
+				<input type="button" value="删除" onclick="optDelete();"
+					class="del-button" / style="float: left; margin-right: 10px;">
+				&nbsp; <input type="button" value="保存排列顺序" onclick="optPriority();"
+					class="bcplxx-button" / style="float: left;">
+			</div>
+		</form>
+	</div>
+</body>
+</html>

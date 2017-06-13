@@ -1,0 +1,146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional
+.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title></title>
+<link href="/jeecms/res/jeecms/css/admin.css" rel="stylesheet"
+	type="text/css" />
+<link href="/jeecms/res/common/css/theme.css" rel="stylesheet"
+	type="text/css" />
+<link href="/jeecms/res/common/css/jquery.validate.css" rel="stylesheet"
+	type="text/css" />
+<link href="/jeecms/res/common/css/jquery.treeview.css" rel="stylesheet"
+	type="text/css" />
+<link href="/jeecms/res/common/css/jquery.ui.css" rel="stylesheet"
+	type="text/css" />
+
+<script src="/jeecms/thirdparty/My97DatePicker/WdatePicker.js"
+	type="text/javascript"></script>
+<script src="/jeecms/res/common/js/jquery.js" type="text/javascript"></script>
+<script src="/jeecms/res/common/js/jquery.ext.js" type="text/javascript"></script>
+<script src="/jeecms/res/common/js/jquery-ui.js" type="text/javascript"></script>
+<script src="/jeecms/res/common/js/jeecms.js" type="text/javascript"></script>
+<script src="/jeecms/res/jeecms/js/admin.js" type="text/javascript"></script>
+
+<script src="/jeecms/thirdparty/ueditor/ueditor.config.js"
+	type="text/javascript"></script>
+<script src="/jeecms/thirdparty/ueditor/ueditor.all.js"
+	type="text/javascript"></script>
+<script src="/jeecms/thirdparty/ueditor/lang/zh-cn/zh-cn.js"
+	type="text/javascript"></script>
+<script type="text/javascript">
+	function getTableForm() {
+		return document.getElementById('tableForm');
+	}
+	function optDelete() {
+		if (Pn.checkedCount('ids') <= 0) {
+			$.alert("提示", "请选择您要操作的数据");
+			return;
+		}
+		$.confirm(doDelete, "确认", "您确定删除吗？");
+	}
+	function doDelete() {
+		var f = getTableForm();
+		f.action = "o_delete.do";
+		f.submit();
+	}
+	function optCheck() {
+		if (Pn.checkedCount('ids') <= 0) {
+			$.alert("提示", "请选择您要操作的数据");
+			return;
+		}
+		$.confirm(doCheck, "确认", "您确定审核通过吗？");
+	}
+	function doCheck() {
+		var f = getTableForm();
+		f.action = "o_check.do";
+		f.submit();
+	}
+</script>
+</head>
+<body>
+	<div class="page-positon ove">
+		<div class="position-div">当前位置: 会员管理 > 列表</div>
+	</div>
+	<div class="box-positon">
+		<form class="ropt">
+			<input class="add" type="submit" value="添加"
+				onclick="this.form.action='v_add.do';" />
+		</form>
+		<div class="clear"></div>
+	</div>
+	<div class="body-box">
+		<form action="v_list.do" method="post">
+			<div style="padding-bottom: 10px; text-indent: 6px;">
+				用户名: <input type="text" name="queryUsername" value=""
+					style="width: 100px; margin-right: 10px;" /> 电子邮箱: <input
+					type="text" name="queryEmail" value=""
+					style="width: 70px; margin-right: 10px;" /> <label class="p-label"
+					style="margin-left: 0; margin-right: 8px;"><input
+					type="checkbox" name="queryDisabled" value="true" />禁用</label> <select
+					name="queryGroupId" style="height: 24px;"><option value=""
+						selected="selected">所有会员组</option>
+					<option value="1">普通会员</option>
+					<option value="2">高级组</option>
+					<option value="3">vip</option></select> <input class="query" type="submit"
+					value="查询" />
+			</div>
+		</form>
+		<form id="tableForm" method="post">
+			<input type="hidden" name="pageNo" value="" />
+			<table class="pn-ltable" style="" width="100%" cellspacing="0"
+				cellpadding="0" border="0">
+			</table>
+			<table width="100%" border="0" cellpadding="0" cellspacing="0">
+				<tr>
+					<td align="center" class="pn-sp">共 0 条&nbsp; 每页<input
+						type="text" value="20" maxlength="3" style="width: 30px"
+						onfocus="this.select();" onblur="refresh
+(this.value)"
+						onkeypress="if(event.keyCode==13){$(this).blur();return false;}" />条&nbsp;
+						<input class="first-page" type="button" value="首 页"
+						onclick="_gotoPage('1');" disabled="disabled" /> <input
+						class="pre-page" type="button" value="上一页"
+						onclick="_gotoPage('1');" disabled="disabled" /> <input
+						class="next-page" type="button" value="下一页"
+						onclick="_gotoPage('1');" disabled="disabled" /> <input
+						class="last-page" type="button" value="尾 页"
+						onclick="_gotoPage('1');" disabled="disabled" />&nbsp ; 当前 1/1 页
+						&nbsp;转到第<input type="text" id="_goPs" style="width: 50px"
+						onfocus="this.select();"
+						onkeypress="if(event.keyCode==13){$('#_goPage').click();return false;}" />页
+						<input class="go" id="_goPage" type="button" value="转"
+						onclick="_gotoPage($('#_goPs').val());" disabled="disabled" />
+					</td>
+				</tr>
+			</table>
+			<script type="text/javascript">
+				function _gotoPage(pageNo) {
+					try {
+						var tableForm = getTableForm();
+						$("input[name=pageNo]").val(pageNo);
+						tableForm.action = "v_list.do";
+						tableForm.onsubmit = null;
+						tableForm.submit();
+					} catch (e) {
+						alert('_gotoPage(pageNo)方法出错');
+					}
+				}
+				function refresh(value) {
+					$.cookie('_cookie_page_size', value, {
+						expires : 3650
+					});
+					_gotoPage($("input[name=pageNo]").val());
+				}
+			</script>
+			<div>
+				<input class="del-button" type="button" value="删除"
+					onclick="optDelete();" / style="float: left; margin-right: 6px;">
+				<input class="check" type="button" value="审核" onclick="optCheck();"
+					/ style="float: left;">
+			</div>
+		</form>
+	</div>
+</body>
+</html>

@@ -1,0 +1,7 @@
+org\javacms\controller\Index.class
+org\javacms\controller\IndexController.class
+org\javacms\controller\MessageController.class
+org\javacms\controller\BaseController.class
+org\javacms\controller\LoginController.class
+org\javacms\controller\TestController.class
+org\javacms\controller\UserController.class

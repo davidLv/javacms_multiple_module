@@ -1,0 +1,32 @@
+<#assign contextPath=request.contextPath />
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional
+.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>jeecms-left</title>
+<#include "/admin/common/header.html"/>
+<script type="text/javascript">
+	$(function() {
+		Cms.leftLi();
+	});
+</script>
+</head>
+<body>
+	<div class="w230 f_l ove">
+		<div class="fresh" style="font-size: 12px; text-indent: 36px;">
+			<div class="date">
+				<span>
+				</span>
+			</div>
+		</div>
+		<div class="w229">
+			<ol>
+				<li class="leftCurr"><a href="edit_profile" target="rightFrame">修改个人资料</a></li>
+				<li class=""><a href="edit_password" target="rightFrame">修改密码</a></li>
+			</ol>
+		</div>
+	</div>
+
+</body>
+</html>

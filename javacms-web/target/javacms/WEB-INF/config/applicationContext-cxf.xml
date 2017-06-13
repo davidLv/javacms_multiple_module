@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jaxws="http://cxf.apache.org/jaxws"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://cxf.apache.org/jaxws
+        http://cxf.apache.org/schemas/jaxws.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+    <context:annotation-config />
+    <context:component-scan base-package="org.javacms.ws"/>
+    <import resource="/cxf/cxf.xml"/>
+    <import resource="/cxf/cxf-servlet.xml"/>
+<!--    <beans>
+        <bean id="helloWorldServiceImpl" class="org.javacms.ws.impl.HelloWorldServiceImpl" />
+    </beans>-->
+    <jaxws:endpoint id="helloworld" implementor="#helloWorldServiceImpl" address="/helloworld"/>
+    <jaxws:endpoint id="userList" implementor="#userSoapServiceImpl" address="/user/list"/>
+</beans>

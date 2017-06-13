@@ -1,0 +1,1281 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional
+.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title></title>
+<link href="/jeecms/res/jeecms/css/admin.css" rel="stylesheet"
+	type="text/css" />
+<link href="/jeecms/res/common/css/theme.css" rel="stylesheet"
+	type="text/css" />
+<link href="/jeecms/res/common/css/jquery.validate.css" rel="stylesheet"
+	type="text/css" />
+<link href="/jeecms/res/common/css/jquery.treeview.css" rel="stylesheet"
+	type="text/css" />
+<link href="/jeecms/res/common/css/jquery.ui.css" rel="stylesheet"
+	type="text/css" />
+
+<script src="/jeecms/thirdparty/My97DatePicker/WdatePicker.js"
+	type="text/javascript"></script>
+<script src="/jeecms/res/common/js/jquery.js" type="text/javascript"></script>
+<script src="/jeecms/res/common/js/jquery.ext.js" type="text/javascript"></script>
+<script src="/jeecms/res/common/js/jquery-ui.js" type="text/javascript"></script>
+<script src="/jeecms/res/common/js/jeecms.js" type="text/javascript"></script>
+<script src="/jeecms/res/jeecms/js/admin.js" type="text/javascript"></script>
+
+<script src="/jeecms/thirdparty/ueditor/ueditor.config.js"
+	type="text/javascript"></script>
+<script src="/jeecms/thirdparty/ueditor/ueditor.all.js"
+	type="text/javascript"></script>
+<script src="/jeecms/thirdparty/ueditor/lang/zh-cn/zh-cn.js"
+	type="text/javascript"></script>
+<script type="text/javascript">
+var timeout = 500;
+var closetimer = 0;
+var ddmenuitem = 0;
+function jsddm_open()
+{	
+	jsddm_canceltimer();
+	jsddm_close();
+	ddmenuitem = $(this).find('ul').eq(0).css('visibility', 'visible');
+}
+function jsddm_close()
+{	
+	if(ddmenuitem) ddmenuitem.css('visibility', 'hidden');
+}
+function jsddm_timer()
+{	
+	closetimer = window.setTimeout(jsddm_close, timeout);
+}
+function jsddm_canceltimer()
+{	
+	if(closetimer){	
+		window.clearTimeout(closetimer);
+		closetimer = null;
+	}
+}
+document.onclick = jsddm_close;
+$(function() {
+	$("#tableForm").validate();
+	$('#jsddm > li').bind('mouseover', jsddm_open);
+	$('#jsddm > li').bind('mouseout',  jsddm_timer);
+	$("tbody tr").each(function(){
+		$(this).attr("bgColor","ffffff");
+		$(this).bind('mouseover', function() {
+			$(this).attr("bgColor","#f3f3f3");
+		});
+		$(this).bind('mouseout', function() {
+			$(this).attr("bgColor","#ffffff");
+		});
+	});
+	$("#rejectDialog").dialog({
+		autoOpen: false,
+		modal: true,
+		width: 380,
+		height: 200,
+		position: ["center",50],
+		buttons: {
+			"OK": function() {
+				rejectSubmit();
+			}
+		}
+	});
+	//移动栏目对话框
+	$("#moveDialog").dialog({
+		autoOpen: false,
+		modal: true,
+		width: 280,
+		height: 420,
+		position: ["center",20],
+		buttons: {
+			"OK": function() {
+				doOperate("o_move.do","移动内容成功！");
+				$(this).dialog("close");
+			}
+		}
+	});
+	var move_opened = false;
+	$('#move').click(function(){
+		if(checkSelectContentNum()){
+			//第一次打开，需要获取数据。
+			if(!move_opened) {
+				$("#movetree").treeview({
+					url: "v_tree_radio.do"
+				});
+				move_opened = true;
+				$("#moveDialog").show();
+			}
+			$('#moveDialog').dialog('open');
+			return false;
+		}
+	});		
+	//复制栏目对话框
+	$("#copyDialog").dialog({
+		autoOpen: false,
+		modal: true,
+		width: 280,
+		height: 420,
+		position: ["center",20],
+		buttons: {
+			"OK": function(){
+				doOperate("o_copy.do","复制成功!");
+				$(this).dialog("close");
+			}
+		}
+	});
+	var copy_opened = false;
+	$('#copy').click(function(){
+		if(checkSelectContentNum()){
+			//第一次打开，需要获取数据。
+			if(!copy_opened) {
+				$("#copytree").treeview({
+					url: "v_tree_radio.do"
+				});
+				copy_opened = true;
+				$("#copyDialog").show();
+			}
+			$('#copyDialog').dialog('open');
+			return false;
+		}
+	});		
+	//推送至专题
+	$("#topicsDialog").dialog({
+		autoOpen: false,
+		modal: true,
+		width: 280,
+		height: 420,
+		position: ["center",20],
+		buttons: {
+			"OK": function(){
+		        doSendToTopics();
+				$(this).dialog("close");
+			}
+		}
+	});
+	var send_to_topic_opened = false;
+	$('#sendtotopic').click(function(){
+		if(checkSelectContentNum()){
+			if(!send_to_topic_opened) {
+				$.getJSON("../topic/by_channel.do",function(topics) {
+					var ts = $("#topics");
+					ts.empty();
+					var len = topics.length;
+					for(var i=0;i<len;i++) {
+						ts.append("<li><input type='checkbox' name='topics' value='"+topics[i].id+"'/>"+topics[i].name
++"</li> ");
+					}
+					ts.parent().toggle(len>0);
+				});
+				$("#topicsDialog").show();
+			}
+			$('#topicsDialog').dialog('open');
+			return false;
+		}
+	});	
+	
+	
+	$("div[id^='status_']").each(function(){
+		$(this).bind('mouseout', function() {
+			$("#step_"+$(this).attr("id").split("status_")[1]).hide();
+		});
+		$(this).bind('mouseover', function() {
+			$("#step_"+$(this).attr("id").split("status_")[1]).show();
+		});
+	});
+});
+
+function checkSelectContentNum(){
+	var contentIds=getContentIds();
+	if(contentIds.length<=0){
+		$.alert("提示","请选择内容");
+		return false;
+	}
+	return true;
+}
+function doOperate(action,succ){
+	var contentIds=getContentIds();
+	var channelIds=getChannelIds();
+	if(contentIds.length<=0){
+		$.alert("提示","请选择内容");
+	}else{
+		if(channelIds.length<=0){
+			$.alert("提示","请选择栏目");
+		}else{
+			ajaxPost(action,contentIds,channelIds,succ);
+		}
+	}
+}
+function doSendToTopics(){
+    var contentIds=getContentIds();
+    var topicIds=getTopicIds();
+    if(contentIds.length<=0){
+      $.alert("提示","请选择内容");
+   }else{
+     if(topicIds.length<=0){
+	   $.alert("提示","请选择栏目");
+      }else{
+    	  $.post("o_send_to_topic.do", {
+	    		contentIds:contentIds,
+	    		topicIds:topicIds
+	    		}, function(data) {
+	    			if(data.pass){
+	    				$.alert("提示","推送内容至专题成功!");
+	    				}
+	    			},
+	    		"json");
+      }
+    }
+}
+function ajaxPost(url,contentIds,channelIds,succ){
+	$.ajax({
+        type: "POST",
+        url: url,
+        data: {contentIds:contentIds,channelId:channelIds},
+        dataType: "json",
+        success: function(data){
+        	if(data.pass){
+				$.alert("提示",succ);
+				var f = getTableForm();
+				f.action="v_list.do";
+				f.submit();
+			}
+        },
+        error:function(){
+        	$.alert("提示","没有权限执行此操作!");
+ 	 	}
+    });
+}
+function getContentIds(){
+	var ids=new Array();
+	$("input[name='ids']").each(function() {
+		if($(this).prop("checked")){
+			ids.push($(this).val());
+			}
+	});
+	return ids;
+}
+function getChannelIds(){
+	var ids=new Array();
+	$("input[name='channels']").each(function() {
+		if($(this).prop("checked")){
+			ids.push($(this).val());
+			}
+	});
+	return ids;
+}
+function getTopicIds(){
+	var ids=new Array();
+	$("input[name='topics']").each(function() {
+		if($(this).prop("checked")){
+			ids.push($(this).val());
+			}
+	});
+	return ids;
+}
+function getTableForm() {
+	return document.getElementById('tableForm');
+}
+function optDelete() {
+	if(Pn.checkedCount('ids')<=0) {
+		$.alert("提示","请选择您要操作的数据");
+		return;
+	}
+	$.confirm(doDelete,"确认","您确定删除吗？");
+}
+function doDelete(){
+	var f = getTableForm();
+	f.action="o_delete.do";
+	f.submit();
+}
+function optCheck() {
+	if(Pn.checkedCount('ids')<=0) {
+		$.alert("提示","请选择您要操作的数据");
+		return;
+	}
+	var f = getTableForm();
+	f.action="o_check.do";
+	f.submit();
+}
+function optSubmit() {
+	if(Pn.checkedCount('ids')<=0) {
+		$.alert("提示","请选择您要操作的数据");
+		return;
+	}
+	var f = getTableForm();
+	f.action="o_submit.do";
+	f.submit();
+}
+function optStatic() {
+	if(Pn.checkedCount('ids')<=0) {
+		$.alert("提示","请选择您要操作的数据");
+		return;
+	}
+	var f = getTableForm();
+	f.action="o_static.do";
+	f.submit();
+}
+function optReject() {
+	if(Pn.checkedCount('ids')<=0) {
+		$.alert("提示","请选择您要操作的数据");
+		return;
+	}
+	$("#rejectDialog").dialog("open");
+}
+
+function rejectSubmit() {
+	$("input[name=rejectOpinion]").val($("#rejectOpinion").val());
+	$("input[name=rejectStep]").val($("#rejectStep").val());
+	$("#rejectDialog").dialog("close");
+	var f = getTableForm();
+	f.action="o_reject.do";
+	f.submit();
+}
+function chgStatus() {
+	var queryStatus = $("input[name=queryStatus]:checked").val();
+	location.href="v_list.do?cid=&queryStatus=" + queryStatus;
+}
+
+function optPriority() {
+	var f = getTableForm();
+	f.action="o_priority.do";
+	f.submit();
+}
+function optWeixin() {
+	if(Pn.checkedCount('ids')<=0) {
+		$.alert("提示","请选择您要操作的数据");
+		return;
+	}
+	$.confirm(sendToWeixin,"确认","The selected content if no type of figure is the content will not be sent
+, the user can only receive 4 messages per month, confirmed to send?");
+}
+function sendToWeixin(){
+	var f = getTableForm();
+	f.action="o_sendToWeixin.do";
+	f.submit();
+}
+function optPigeonhole() {
+	if(Pn.checkedCount('ids')<=0) {
+		$.alert("提示","请选择您要操作的数据");
+		return;
+	}
+	var f = getTableForm();
+	f.action="o_pigeonhole.do";
+	f.submit();
+}
+function optUnPigeonhole() {
+	if(Pn.checkedCount('ids')<=0) {
+		$.alert("提示","请选择您要操作的数据");
+		return;
+	}
+	var f = getTableForm();
+	f.action="o_unpigeonhole.do";
+	f.submit();
+}
+</script>
+
+</head>
+<body>
+	<div class="page-positon ove">
+		<div class="position-div">当前位置: 内容管理 > 列表</div>
+	</div>
+	<div class="box-positon" style="overflow: hidden;">
+		<div style="float: left;">
+			<ul id="jsddm">
+				<li class="first"><a href="#">发布内容</a>
+					<ul>
+						<li value="1"><a href="v_add.do?modelId=1&cid=""> <img
+								src="/jeecms/res/common/img/theme/model-1.gif"
+								/ style="vertical-align: middle;"> 新闻
+						</a></li>
+						<li value="1"><a href="v_add.do?modelId=4&cid=""> <img
+								src="/jeecms/res/common/img/theme/model-4.gif"
+								/ style="vertical-align: middle;"> 下载
+						</a></li>
+						<li value="1"><a href="v_add.do?modelId=5&cid=""> <img
+								src="/jeecms/res/common/img/theme/model-5.gif"
+								/ style="vertical-align: middle;"> 图库
+						</a></li>
+						<li value="1"><a href="v_add.do?modelId=6&cid=""> <img
+								src="/jeecms/res/common/img/theme/model-6.gif"
+								/ style="vertical-align: middle;"> 视频
+						</a></li>
+						<li value="1"><a href="v_add.do?modelId=8&cid=""> <img
+								src="/jeecms/res/common/img/theme/model-8.gif"
+								/ style="vertical-align: middle;"> 招聘
+						</a></li>
+					</ul></li>
+			</ul>
+
+			<input type="hidden" name="cid" value="" />
+			</form>
+		</div>
+
+		<div style="float: left; margin-left: 100px;">
+			<form action="v_list.do" method="post">
+				<div class="top-t">
+					<span>标题: <input type="text" name="queryTitle" value=""
+						style="width: 130px" /></span> <span>发布者: <input type="text"
+						name="queryInputUsername" value="" style="width: 70px" /></span> <span><label><input
+							type="checkbox" name="queryTopLevel" value="true" />固顶</label></span> <span><label><input
+							type="checkbox" name="queryRecommend" value="true" />推荐</label></span> <select
+						name="queryTypeId"><option value="" selected="selected">--所有类型--</option>
+						<option value="1">普 通</option>
+						<option value="2">图文</option>
+						<option value="3">焦点</option>
+						<option value="4">头条</option></select> <select name="queryOrderBy"><option
+							value="0">ID降序</option>
+						<option value="1">ID升序</option>
+						<option value="2">发布时间降</option>
+						<option value="3">发布时间升</option>
+						<option value="4" selected="selected">固顶降,发布降</option>
+						<option value="5">固顶降,发布升</option>
+						<option value="6">日点击降</option>
+						<option value="7">周点击降</option>
+						<option value="8">月点击降</option>
+						<option value="9">总点击降</option>
+						<option value="10">日评论降</option>
+						<option value="11">周评论降</option>
+						<option value="12">月评论降</option>
+						<option value="13">总评论降</option>
+						<option value="14">日下载降</option>
+						<option value="15">周下载降</option>
+						<option value="16">月下载降</option>
+						<option value="17">总下载 降</option>
+						<option value="18">日顶降</option>
+						<option value="19">周顶降</option>
+						<option value="20">月顶降</option>
+						<option value="21">总顶降</option>
+						<option value="22">推荐降、发布降</option>
+						<option value="23">推荐升、发布降</option></select> <input type="hidden"
+						name="cid" value="" /> <input class="query" type="submit"
+						value="查询" style="border: none;" />
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="body-box" style="margin-top: 5px;">
+		<form action="v_list.do" method="post">
+			<div class="top-l" style="text-indent: 3px;">
+				<label><input type="radio" name="queryStatus" value="all"
+					onclick="chgStatus();" checked="checked"/
+>所有内容</label> <label><input
+					type="radio" name="queryStatus" value="contribute"
+					onclick="chgStatus();" />投稿</label> <label><input type="radio"
+					name="queryStatus" value="draft" onclick="chgStatus();" />草稿</label> <label><input
+					type="radio" name="queryStatus" value="prepared"
+					onclick="chgStatus();" />待审</label> <label><input type="radio"
+					name="queryStatus" value="passed" onclick="chgStatus();" />已审</label> <label><input
+					type="radio" name="queryStatus" value="checked"
+					onclick="chgStatus();" />终审</label> <label><input type="radio"
+					name="queryStatus" value="rejected" onclick="chgStatus();" />退回</label> <label><input
+					type="radio" name="queryStatus" value="pigeonhole"
+					onclick="chgStatus();" />归档</label>
+
+			</div>
+		</form>
+		<form id="tableForm" method="post">
+			<input type="hidden" name="pageNo" value="" /> <input type="hidden"
+				name="cid" value="" /> <input type="hidden" name="queryRecommend"
+				value="false" /><input type="hidden" name="queryOrderBy" value="4" /><input
+				type="hidden" name="queryTopLevel" value="false" /><input
+				type="hidden" name="rejectStep" /> <input type="hidden"
+				name="rejectOpinion" />
+			<table class="pn-ltable" style="" width="100%" cellspacing="0"
+				cellpadding="0" border="0">
+				<thead class="pn-lthead">
+					<tr>
+						<th width="25"><input type='checkbox'
+							onclick='Pn.checkbox("ids",this.checked)' /></th>
+						<th>ID</th>
+						<th>标题</th>
+						<th>固顶级别</th>
+						<th>类型</th>
+						<th>发布者</th>
+						<th>点击</th>
+						<th>发布时间</th>
+						<th>状态</th>
+						<th>静态页</th>
+						<th>操作选项</th>
+					</tr>
+				</thead>
+				<tbody class="pn-ltbody">
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='130' onclick="Pn.selectCheckBox('130',this
+.checked)" /></td>
+						<td align="center">130</td>
+						<td><img src="/jeecms/res/common/img/theme/model-1.gif" /> <span
+							style="color: #6da807">[顶1]</span> <strong>[新闻]</strong> <a
+							href="http://localhost:8080/jeecms/news/130.jhtml"
+							target="_blank">党中央推进民族工作创新发展纪实</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="130" /> <input type="text" name="topLevel" value="1"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">普通</td>
+						<td align="center">admin</td>
+						<td align="center">22</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_130" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=130&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=130&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=130&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=130"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='121' onclick="Pn.selectCheckBox('121',this
+.checked)" /></td>
+						<td align="center">121</td>
+						<td><img src="/jeecms/res/common/img/theme/model-6.gif" /> <span
+							style="color: #6da807">[顶1]</span> <span style="color: #6da807">[推]</span>
+							<strong>[视频]</strong> <a
+							href="http://localhost:8080/jeecms/video/121.jhtml"
+							target="_blank">《半妖倾城》爱与恨，追与逃，人与妖再一次掀起一段... </a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="121" /> <input type="text" name="topLevel" value="1"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">图文</td>
+						<td align="center">admin</td>
+						<td align="center">2</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_121" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=121&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=121&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=121&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=121"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='13' onclick="Pn.selectCheckBox('13',this
+.checked)" /></td>
+						<td align="center">13</td>
+						<td><img src="/jeecms/res/common/img/theme/model-5.gif" /> <span
+							style="color: #6da807">[顶1]</span> <span style="color: #6da807">[推]</span>
+							<strong>[图库]</strong> <a
+							href="http://localhost:8080/jeecms/pic/13.jhtml" target="_blank">中国空军航空兵赴南海常态化战斗巡航</a>
+						</td>
+						<td align="center"><input type="hidden" name="wids"
+							value="13" /> <input type="text" name="topLevel" value="1"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">图文</td>
+						<td align="center">admin</td>
+						<td align="center">20</td>
+						<td align="center">2016-07-19</td>
+						<td align="center">
+							<div id="status_13" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=13&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=13&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=13&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=13"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='141' onclick="Pn.selectCheckBox('141',this
+.checked)" /></td>
+						<td align="center">141</td>
+						<td><img src="/jeecms/res/common/img/theme/model-5.gif" /> <strong>[图库]</strong>
+							<a href="http://localhost:8080/jeecms/pic/141.jhtml"
+							target="_blank">乌兰布统牧歌秋韵</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="141" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">图文</td>
+						<td align="center">admin</td>
+						<td align="center">2</td>
+						<td align="center">2016-10-11</td>
+						<td align="center">
+							<div id="status_141" class="status">草稿</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=141&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=141&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=141&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=141"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='140' onclick="Pn.selectCheckBox('140',this
+.checked)" /></td>
+						<td align="center">140</td>
+						<td><img src="/jeecms/res/common/img/theme/model-8.gif" /> <strong>[招聘]</strong>
+							<a href="http://localhost:8080/jeecms/job/140.jhtml"
+							target="_blank">安卓游戏开发5险1金</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="140" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">普通</td>
+						<td align="center">admin</td>
+						<td align="center">18</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_140" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=140&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=140&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=140&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=140"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='132' onclick="Pn.selectCheckBox('132',this
+.checked)" /></td>
+						<td align="center">132</td>
+						<td><img src="/jeecms/res/common/img/theme/model-1.gif" /> <strong>[新闻]</strong>
+							<a href="http://localhost:8080/jeecms/news/132.jhtml"
+							target="_blank">黄金接连下跌难道又等大妈来托盘</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="132" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">普通</td>
+						<td align="center">admin</td>
+						<td align="center">7</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_132" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=132&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=132&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=132&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=132"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='131' onclick="Pn.selectCheckBox('131',this
+.checked)" /></td>
+						<td align="center">131</td>
+						<td><img src="/jeecms/res/common/img/theme/model-1.gif" /> <strong>[新闻]</strong>
+							<a href="http://localhost:8080/jeecms/news/131.jhtml"
+							target="_blank">楼市调控应跳出周期性怪圈</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="131" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">普通</td>
+						<td align="center">admin</td>
+						<td align="center">17</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_131" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=131&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=131&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=131&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=131"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='129' onclick="Pn.selectCheckBox('129',this
+.checked)" /></td>
+						<td align="center">129</td>
+						<td><img src="/jeecms/res/common/img/theme/model-6.gif" /> <strong>[视频]</strong>
+							<a href="http://localhost:8080/jeecms/video/129.jhtml"
+							target="_blank">北京特战队员魔鬼周训练 挑战50项最严苛极限项目</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="129" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">图文</td>
+						<td align="center">admin</td>
+						<td align="center">18</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_129" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=129&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=129&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=129&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=129"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='128' onclick="Pn.selectCheckBox('128',this
+.checked)" /></td>
+						<td align="center">128</td>
+						<td><img src="/jeecms/res/common/img/theme/model-6.gif" /> <strong>[视频]</strong>
+							<a href="http://localhost:8080/jeecms/video/128.jhtml"
+							target="_blank">德国举行南瓜称重比赛 763公斤南瓜获得加冕</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="128" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">图文</td>
+						<td align="center">admin</td>
+						<td align="center">1</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_128" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=128&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=128&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=128&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=128"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='127' onclick="Pn.selectCheckBox('127',this
+.checked)" /></td>
+						<td align="center">127</td>
+						<td><img src="/jeecms/res/common/img/theme/model-6.gif" /> <strong>[视频]</strong>
+							<a href="http://localhost:8080/jeecms/video/127.jhtml"
+							target="_blank">美国金秋不止红叶</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="127" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">图文</td>
+						<td align="center">admin</td>
+						<td align="center">1</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_127" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=127&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=127&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=127&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=127"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='126' onclick="Pn.selectCheckBox('126',this
+.checked)" /></td>
+						<td align="center">126</td>
+						<td><img src="/jeecms/res/common/img/theme/model-6.gif" /> <strong>[视频]</strong>
+							<a href="http://localhost:8080/jeecms/video/126.jhtml"
+							target="_blank">西北第一村白哈巴的早秋</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="126" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">图文</td>
+						<td align="center">admin</td>
+						<td align="center">2</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_126" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=126&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=126&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=126&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=126"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='125' onclick="Pn.selectCheckBox('125',this
+.checked)" /></td>
+						<td align="center">125</td>
+						<td><img src="/jeecms/res/common/img/theme/model-6.gif" /> <strong>[视频]</strong>
+							<a href="http://localhost:8080/jeecms/video/125.jhtml"
+							target="_blank">习主席和中央军委领导推进军队战斗力建设纪实</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="125" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">图文</td>
+						<td align="center">admin</td>
+						<td align="center">1</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_125" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=125&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=125&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=125&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=125"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='124' onclick="Pn.selectCheckBox('124',this
+.checked)" /></td>
+						<td align="center">124</td>
+						<td><img src="/jeecms/res/common/img/theme/model-6.gif" /> <strong>[视频]</strong>
+							<a href="http://localhost:8080/jeecms/video/124.jhtml"
+							target="_blank">李克强出席加拿大总理家宴 小小特鲁多表演后空翻</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="124" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">图文</td>
+						<td align="center">admin</td>
+						<td align="center">2</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_124" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=124&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=124&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=124&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=124"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='123' onclick="Pn.selectCheckBox('123',this
+.checked)" /></td>
+						<td align="center">123</td>
+						<td><img src="/jeecms/res/common/img/theme/model-6.gif" /> <span
+							style="color: #6da807">[推]</span> <strong>[视频]</strong> <a
+							href="http://localhost:8080/jeecms/video/123.jhtml"
+							target="_blank">《奔跑吧兄弟》收官对决一触即发 邓超被岳云鹏压垮惨叫< /a> </td>
+						<td align="center"><input type="hidden" name="wids"
+							value="123" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">图文</td>
+						<td align="center">admin</td>
+						<td align="center">1</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_123" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=123&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=123&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=123&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=123"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='122' onclick="Pn.selectCheckBox('122',this
+.checked)" /></td>
+						<td align="center">122</td>
+						<td><img src="/jeecms/res/common/img/theme/model-6.gif" /> <span
+							style="color: #6da807">[推]</span> <strong>[视频]</strong> <a
+							href="http://localhost:8080/jeecms/video/122.jhtml"
+							target="_blank">《那年青春我们正好》刘诗诗、种丹妮演绎闺蜜</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="122" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">图文</td>
+						<td align="center">admin</td>
+						<td align="center">1</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_122" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=122&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=122&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=122&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=122"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='120' onclick="Pn.selectCheckBox('120',this
+.checked)" /></td>
+						<td align="center">120</td>
+						<td><img src="/jeecms/res/common/img/theme/model-5.gif" /> <strong>[图库]</strong>
+							<a href="http://localhost:8080/jeecms/pic/120.jhtml"
+							target="_blank">宛如置身黑客帝国 “啤酒丛林”惊艳青岛海滨夜空</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="120" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">图文</td>
+						<td align="center">admin</td>
+						<td align="center">1</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_120" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=120&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=120&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=120&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=120"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='119' onclick="Pn.selectCheckBox('119',this
+.checked)" /></td>
+						<td align="center">119</td>
+						<td><img src="/jeecms/res/common/img/theme/model-5.gif" /> <strong>[图库]</strong>
+							<a href="http://localhost:8080/jeecms/pic/119.jhtml"
+							target="_blank">摄影师拍摄巨鳄破水而出吞食猎物 上演一箭双雕</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="119" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">图文</td>
+						<td align="center">admin</td>
+						<td align="center">2</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_119" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=119&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=119&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=119&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=119"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='118' onclick="Pn.selectCheckBox('118',this
+.checked)" /></td>
+						<td align="center">118</td>
+						<td><img src="/jeecms/res/common/img/theme/model-5.gif" /> <strong>[图库]</strong>
+							<a href="http://localhost:8080/jeecms/pic/118.jhtml"
+							target="_blank">探访燕城监狱：蔬菜自己种 午餐两菜一汤</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="118" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">图文</td>
+						<td align="center">admin</td>
+						<td align="center">1</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_118" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=118&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=118&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=118&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=118"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='117' onclick="Pn.selectCheckBox('117',this
+.checked)" /></td>
+						<td align="center">117</td>
+						<td><img src="/jeecms/res/common/img/theme/model-5.gif" /> <strong>[图库]</strong>
+							<a href="http://localhost:8080/jeecms/pic/117.jhtml"
+							target="_blank">中俄“合作－2016”联合反恐训练圆满结束</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="117" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">图文</td>
+						<td align="center">admin</td>
+						<td align="center">18</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_117" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=117&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=117&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=117&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=117"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+					<tr>
+						<td align="center"><input type='checkbox' name='ids'
+							value='116' onclick="Pn.selectCheckBox('116',this
+.checked)" /></td>
+						<td align="center">116</td>
+						<td><img src="/jeecms/res/common/img/theme/model-5.gif" /> <span
+							style="color: #6da807">[推]</span> <strong>[图库]</strong> <a
+							href="http://localhost:8080/jeecms/pic/116.jhtml" target="_blank">全世界最孤独的咖啡馆：海拔4860米
+								达古冰川之巅</a></td>
+						<td align="center"><input type="hidden" name="wids"
+							value="116" /> <input type="text" name="topLevel" value="0"
+							required="true" class="required digits" maxlength="2"
+							style="width: 20px" /></td>
+						<td align="center">图文</td>
+						<td align="center">admin</td>
+						<td align="center">1</td>
+						<td align="center">2016-10-10</td>
+						<td align="center">
+							<div id="status_116" class="status">已终审</div>
+						</td>
+						<td align="center"><span style="color: #6da807">需要生成</span></td>
+						<td align="center"><a
+							href="v_view.do?id=116&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel
+=false&queryRecommend=false&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">查看</a> | <a
+							href="v_edit.do?id=116&cid=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false
+&queryTypeId=&queryStatus=&queryOrderBy=4"
+							class="pn-opt">修改</a> | <a
+							href="o_delete.do?ids=116&cid
+=&pageNo=&queryTitle=&queryInputUsername=&queryTopLevel=false&queryRecommend=false&queryTypeId=&queryStatus
+=&queryOrderBy=4"
+							onclick="if(!$.confirmToUrl(this.href)) {return false;}"
+							class="pn-opt">删除</a> | <a href="record/list.do?id=116"
+							class="pn-opt">操作记录</a></td>
+					</tr>
+				</tbody>
+			</table>
+			<table width="100%" border="0" cellpadding="0" cellspacing="0">
+				<tr>
+					<td align="center" class="pn-sp">共 69 条&nbsp; 每页<input
+						type="text" value="20" maxlength="3" style="width: 30px"
+						onfocus="this.select();" onblur="refresh
+(this.value)"
+						onkeypress="if(event.keyCode==13){$(this).blur();return false;}" />条&nbsp;
+						<input class="first-page" type="button" value="首 页"
+						onclick="_gotoPage('1');" disabled="disabled" /> <input
+						class="pre-page" type="button" value="上一页"
+						onclick="_gotoPage('1');" disabled="disabled" /> <input
+						class="next-page" type="button" value="下一页"
+						onclick="_gotoPage('2');" /> <input class="last-page"
+						type="button" value="尾 页" onclick="_gotoPage('4');" />&nbsp; 当前
+						1/4 页 &nbsp;转到第<input type="text" id="_goPs" style="width: 50px"
+						onfocus="this.select();"
+						onkeypress="if(event.keyCode==13){$('#_goPage').click();return false;}" />页
+						<input class="go" id="_goPage" type="button" value="转"
+						onclick="_gotoPage($('#_goPs').val());" />
+					</td>
+				</tr>
+			</table>
+			<script type="text/javascript">
+function _gotoPage(pageNo) {
+	try{
+		var tableForm = getTableForm();
+		$("input[name=pageNo]").val(pageNo);
+		tableForm.action="v_list.do";
+		tableForm.onsubmit=null;
+		tableForm.submit();
+	} catch(e) {
+		alert('_gotoPage(pageNo)方法出错');
+	}
+}
+function refresh(value){
+	$.cookie('_cookie_page_size',value,{expires:3650});
+	_gotoPage($("input[name=pageNo]").val());
+}
+</script>
+			<div class="content-bottom">
+				<input type="button" value="删除" onclick="optDelete();"
+					class="del-button" / style="float: left;"> <input
+					type="button" id="move" value="移动" class="content_move"
+					/ style="float: left;"> <input type="button" id="copy"
+					value="复制" class="content_copy" / style="float: left;"> <input
+					type="button" value="审核" onclick="optCheck();" class="check"
+					/ style="float: left;"> <input id="rejectButton"
+					type="button" value="退回" onclick="optReject();" class="reject"
+					style="float: left;"> <input id="submitButton"
+					type="button" value="提交" onclick="optSubmit();"
+					style="float: left;"> <input type="button" value="生成静态页"
+					onclick="optStatic();" class="generate-static"
+					/ style="float: left;"> <input class="save-order"
+					type="submit" value="保存固顶" onclick="optPriority();"
+					/ style="float: left;"> <input type="button"
+					id="sendtotopic" value="推送至专题" class="content_sendtopic" /> <input
+					type="button" value="归档" onclick="optPigeonhole();"
+					class="content_pigeonhole" /> <input type="button" value="出档"
+					onclick="optUnPigeonhole();" class="content_unpigeonhole" /> <input
+					type="button" value="群发微信" onclick="optWeixin();"
+					class="content_sendtoweixin" />
+			</div>
+		</form>
+	</div>
+	<div id="rejectDialog" style="display: none" title="退回原因">
+		<p>
+			退回原因: <input type="text" id="rejectOpinion" style="width: 260px"
+				onkeypress="if(event.keyCode==13)
+{rejectSubmit();return false;}" />
+		</p>
+		<p>
+			退回级数: <select id="rejectStep">
+				<option value="">上一级</option>
+				<option value="2">2</option>
+				<option value="1">1</option>
+				<option value="0">0</option>
+			</select>
+		</p>
+	</div>
+	<div id="moveDialog" title="移动(jeecms演示站)" style="display: none;">
+		<ul id="movetree" class="filetree"></ul>
+	</div>
+	<div id="copyDialog" title="复制(jeecms演示站)" style="display: none;">
+		<ul id="copytree" class="filetree"></ul>
+	</div>
+	<div id="topicsDialog" title="推送至专题(jeecms演示站)" style="display: none;">
+		<ul id="topics"></ul>
+	</div>
+</body>
+</html>
